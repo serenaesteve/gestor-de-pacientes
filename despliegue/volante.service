@@ -1,0 +1,24 @@
+[Unit]
+Description=Volante, gestor de pacientes y citas (datos en el SBD de producción)
+After=network-online.target sbd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=volante
+WorkingDirectory=/srv/volante/app
+Environment=PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /srv/volante/app/servidor.py --host 127.0.0.1 --puerto 8103 --datos /srv/volante/datos --publico --url-publica https://gestorpacientes.serenaesteve.com
+Restart=on-failure
+RestartSec=3
+# Solo puede escribir en su carpeta (secreto de los enlaces, sbd.json y correo.json)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/volante/datos
+PrivateTmp=true
+UMask=0077
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

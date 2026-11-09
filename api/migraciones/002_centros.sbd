@@ -1,0 +1,47 @@
+-- =====================================================================
+--  Migración 002 · Varios centros en la misma base
+-- =====================================================================
+--  Cualquiera puede crear su cuenta y su centro. Cada centro tiene sus
+--  propias tablas, con prefijo (c2_citas, c2_pacientes…); el centro 1, el
+--  que ya existía, conserva las tablas sin prefijo. Las cuentas y las
+--  sesiones son comunes: cada cuenta dice de qué centro es.
+--
+--  usuarios.medico_id deja de ser una referencia (->): el médico está en
+--  las tablas de su centro, que no son siempre las mismas. SBD no deja
+--  quitar una referencia, así que la tabla se rehace con sus datos. Las
+--  sesiones se borran: basta con volver a entrar.
+-- =====================================================================
+
+crear tabla centros {
+  id         entero clave
+  nombre     texto(80) obligatorio
+  creado_en  fechahora
+  ejemplo    logico = falso          -- se creó con datos de ejemplo
+}
+insertar en centros desde buscar ajustes donde clave = "centro" mostrar 1 como id, valor como nombre, ahora() como creado_en, falso como ejemplo
+
+crear tabla usuarios_nueva {
+  id               entero clave
+  usuario          texto(30) obligatorio unico comprobar longitud(usuario) >= 3
+  nombre           texto(80) obligatorio
+  centro_id        entero obligatorio -> centros(id) al borrar cascada
+  rol              texto obligatorio comprobar rol en ["direccion", "recepcion", "medico"]
+  medico_id        entero                          -- en las tablas de su centro
+  hash_contrasena  texto obligatorio
+  activo           logico = verdadero
+  creado_en        fechahora
+  ultimo_acceso    fechahora
+}
+insertar en usuarios_nueva desde buscar usuarios
+  mostrar id, usuario, nombre, 1 como centro_id, rol, medico_id, hash_contrasena, activo, creado_en, ultimo_acceso
+borrar tabla sesiones
+borrar tabla usuarios
+renombrar tabla usuarios_nueva a usuarios
+indexar usuarios (centro_id)
+
+crear tabla sesiones {
+  token_hash  texto clave
+  usuario_id  entero obligatorio -> usuarios(id) al borrar cascada
+  expira_en   fechahora obligatorio
+}
+indexar sesiones (usuario_id)

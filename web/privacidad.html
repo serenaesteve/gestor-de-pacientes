@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacidad · Volante</title>
+  <meta name="description" content="Qué guarda Volante, dónde y cómo se borra.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/volante.css">
+  <link rel="stylesheet" href="/css/gota.css">
+  <link rel="stylesheet" href="/css/cita.css">
+</head>
+<body class="mostrador">
+  <main class="carton carton--texto">
+    <p class="carton__centro">Volante · libro de citas</p>
+    <h1>Qué se guarda y dónde</h1>
+
+    <h2>Lo que guarda tu centro</h2>
+    <p>Los datos que el equipo escribe: médicos y sus horarios; pacientes (nombre, documento, fecha de nacimiento, teléfono, correo,
+      dirección y avisos para recepción); citas, notas clínicas, lista de espera y los avisos que se preparan para los pacientes.</p>
+    <p>De cada cuenta: el usuario, el nombre, su papel y la contraseña, que no se guarda tal cual sino como resumen cifrado (PBKDF2).
+      Volante no pide correo, así que una contraseña olvidada no se recupera: dirección puede poner una nueva al resto del equipo.</p>
+
+    <h2>Quién lo ve</h2>
+    <p>Cada centro tiene sus propias tablas y solo lo ven las cuentas de ese centro. La nota clínica la ven los médicos y dirección, no recepción.
+      Los pacientes solo ven su propia cita, con un enlace firmado que no deja ver nada más.
+      Quien administra el servidor tiene acceso técnico a la base de datos.</p>
+
+    <h2>Dónde está</h2>
+    <p>En un servidor propio, en una base de datos SBD. Viaja cifrado (HTTPS), pero en el disco no está cifrado.
+      SBD hace una copia de seguridad diaria y guarda las de los últimos 7 días.</p>
+    <p>Solo se usa una cookie, la de la sesión, que caduca a las 12 horas. No hay publicidad, estadísticas ni servicios de terceros.</p>
+
+    <h2>Cómo se borra</h2>
+    <p>Dirección puede borrar el centro entero desde <b>Ajustes → Borrar el centro</b>: sus tablas y todas sus cuentas desaparecen al momento,
+      y de las copias de seguridad, en 7 días. Una ficha de paciente se borra sola con todo su historial (derecho de supresión).</p>
+
+    <h2>Antes de usarlo con pacientes de verdad</h2>
+    <p>Los datos de salud son una categoría especial en el RGPD. Quien usa Volante en su centro es el responsable de esos datos, y este servicio
+      no ofrece por ahora un contrato de encargo de tratamiento. Para probarlo, usa datos inventados (la casilla «datos de ejemplo» los crea).</p>
+
+    <p class="carton__pie"><a href="/">Volver a Volante</a></p>
+  </main>
+</body>
+</html>

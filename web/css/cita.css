@@ -1,0 +1,53 @@
+/* La tarjeta de cita que recibe el paciente en su enlace */
+.mostrador { min-height: 100dvh; display: grid; place-items: center; padding: var(--e-5) var(--e-4); background: var(--papel-hondo); }
+.carton {
+  width: min(440px, 100%); position: relative; background: var(--etiqueta); border: 1px solid var(--papel-sombra);
+  box-shadow: 0 2px 0 var(--papel-sombra), 0 30px 60px -34px oklch(25% 0.04 70 / .6);
+  padding: var(--e-6) var(--e-5) var(--e-5);
+}
+.carton::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; border-top: 2px dotted var(--papel-sombra); }
+.carton__centro { font-stretch: 70%; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: var(--t-s); }
+.carton__dir { font-size: var(--t-xs); color: var(--tinta-3); margin-top: 2px; }
+.carton h1 { font-size: var(--t-xs); font-stretch: 72%; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin-top: var(--e-5); font-weight: 600; }
+.carton__dia { font-size: var(--t-xl); font-stretch: 85%; font-weight: 700; line-height: 1.15; margin-top: var(--e-1); }
+.carton__hora { font-family: var(--f-hora); font-size: var(--t-xxl); font-weight: 500; line-height: 1; margin: var(--e-2) 0 var(--e-4); letter-spacing: -0.02em; }
+.carton__renglones { display: grid; margin: 0; }
+.carton__renglones div { display: grid; grid-template-columns: 96px 1fr; gap: var(--e-3); padding: var(--e-2) 0; border-bottom: 1px solid var(--pauta); font-size: var(--t-s); }
+.carton__renglones dt { font-stretch: 72%; font-weight: 600; font-size: var(--t-xs); letter-spacing: .09em; text-transform: uppercase; color: var(--tinta-3); padding-top: 2px; }
+.carton__renglones dd { margin: 0; }
+.carton__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-4); flex-wrap: wrap; }
+.carton__sello { --giro: -8deg; margin-right: var(--e-2); }
+.carton__acciones { display: grid; gap: var(--e-2); margin-top: var(--e-5); }
+.carton__acciones .boton { min-height: 48px; font-size: var(--t-m); }
+.carton__pie { margin-top: var(--e-4); font-size: var(--t-xs); color: var(--tinta-3); text-wrap: pretty; }
+.carton__otra { margin-top: var(--e-4); }
+.carton__otra .boton { width: 100%; min-height: 44px; }
+.carton__plazo { font-size: var(--t-s); color: var(--tinta-2); margin-top: var(--e-4); }
+.carton__pedir { margin-top: var(--e-5); border-top: 1.5px solid var(--margen); padding-top: var(--e-4); display: grid; gap: var(--e-4); }
+.carton__pedir h2 { font-size: var(--t-m); font-stretch: 85%; }
+.carton__dias { display: flex; gap: var(--e-2); overflow-x: auto; padding-bottom: var(--e-1); }
+.carton__dias button { flex: none; display: grid; justify-items: center; min-width: 48px; min-height: 52px; border: 1px solid var(--pauta); background: transparent; cursor: pointer; border-radius: var(--radio); padding: var(--e-1); }
+.carton__dias button small { font-size: var(--t-xs); color: var(--tinta-3); text-transform: uppercase; letter-spacing: .06em; }
+.carton__dias button b { font-family: var(--f-hora); font-size: var(--t-l); font-weight: 500; }
+.carton__dias button[aria-pressed="true"] { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
+.carton__dias button[aria-pressed="true"] small { color: inherit; }
+.carton__mas { display: flex; justify-content: space-between; }
+.carton--texto { width: min(640px, 100%); }
+.carton--texto h1 { font-size: var(--t-xl); font-stretch: 85%; color: var(--tinta); text-transform: none; letter-spacing: -0.01em; margin-top: var(--e-4); font-weight: 700; }
+.carton--texto h2 { font-size: var(--t-m); font-stretch: 85%; margin-top: var(--e-5); padding-bottom: var(--e-1); border-bottom: 1px solid var(--pauta); }
+.carton--texto p { font-size: var(--t-s); line-height: 1.6; margin-top: var(--e-2); max-width: 65ch; }
+
+/* tema gota */
+.mostrador { background: var(--fondo); background-attachment: fixed; }
+.carton { border-radius: 30px; border: 1px solid var(--cristal-borde); background: var(--cristal-fuerte); -webkit-backdrop-filter: var(--desenfoque); backdrop-filter: var(--desenfoque); box-shadow: var(--sombra-gota); }
+.carton::before { display: none; }
+.carton__centro { font-family: var(--f-titulo); font-style: italic; font-weight: 600; letter-spacing: 0; text-transform: none; font-size: var(--t-l); font-stretch: normal; }
+.carton h1 { font-stretch: normal; letter-spacing: .12em; }
+.carton__dia { font-family: var(--f-titulo); font-weight: 600; font-stretch: normal; }
+.carton__hora { font-family: var(--f-titulo); font-weight: 700; letter-spacing: -0.02em; }
+.carton__renglones div { border-bottom-color: var(--pauta-fina); }
+.carton__renglones dt { font-stretch: normal; }
+.carton__dias button { border-radius: 18px; border: 1px solid var(--cristal-borde); background: var(--cristal); box-shadow: var(--sombra-gota-baja); }
+.carton__dias button[aria-pressed="true"] { background: linear-gradient(160deg, oklch(80% 0.11 228), oklch(64% 0.13 228)); color: white; border-color: transparent; }
+.carton__pedir { border-top: 1px solid var(--pauta-fina); }
+.carton--texto h2 { border-bottom-color: var(--pauta-fina); font-family: var(--f-titulo); font-weight: 600; }

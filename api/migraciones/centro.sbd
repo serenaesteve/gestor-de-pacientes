@@ -1,0 +1,174 @@
+-- =====================================================================
+--  Las tablas de un centro (sin prefijo: la conexión se lo pone).
+--  Es la parte de centro de 001_inicial.sbd. Si una migración cambia estas
+--  tablas, cambia también este fichero (pruebas/test_centros comprueba
+--  que un centro nuevo queda igual que el centro 1).
+-- =====================================================================
+
+crear tabla ajustes {
+  clave  texto clave
+  valor  texto obligatorio
+}
+
+-- ---------- Médicos y su horario ----------
+
+crear tabla medicos {
+  id            entero clave
+  nombre        texto(80) obligatorio comprobar longitud(nombre) >= 2
+  especialidad  texto(60) obligatorio
+  colegiado     texto(20)
+  consulta      texto(30)                       -- sala o despacho: «Consulta 3»
+  color         texto(10) = "tinta"             -- color de su tampón en el libro
+  telefono      texto(20)
+  email         texto(120)
+  activo        logico = verdadero
+  creado_en     fechahora
+}
+
+-- Una franja por fila: el lunes de 9:00 a 14:00 con citas de 20 minutos.
+-- dia: 1 = lunes … 7 = domingo. Las horas como texto «HH:MM».
+crear tabla horarios {
+  id         entero clave
+  medico_id  entero obligatorio -> medicos(id) al borrar cascada
+  dia        entero obligatorio comprobar dia entre 1 y 7
+  desde      texto(5) obligatorio
+  hasta      texto(5) obligatorio
+  minutos    entero = 20 comprobar minutos entre 5 y 240
+  comprobar desde < hasta
+}
+indexar horarios (medico_id)
+
+-- Vacaciones, congresos, guardias: días en que no se dan citas.
+crear tabla ausencias {
+  id         entero clave
+  medico_id  entero obligatorio -> medicos(id) al borrar cascada
+  desde      fecha obligatorio
+  hasta      fecha obligatorio
+  motivo     texto(120)
+  comprobar desde <= hasta
+}
+indexar ausencias (medico_id)
+
+-- ---------- Pacientes ----------
+
+crear tabla pacientes {
+  id             entero clave
+  nombre         texto(60) obligatorio comprobar longitud(nombre) >= 1
+  apellidos      texto(80) obligatorio
+  documento      texto(20) unico                 -- DNI, NIE o pasaporte
+  nacimiento     fecha
+  telefono       texto(20)
+  email          texto(120)
+  direccion      texto(160)
+  notas          texto                            -- alergias, avisos para recepción
+  canal          texto = "correo" comprobar canal en ["correo", "sms", "whatsapp", "ninguno"]
+  creado_en      fechahora
+}
+indexar pacientes (apellidos)
+
+
+
+-- ---------- Citas ----------
+
+crear tabla citas {
+  id             entero clave
+  paciente_id    entero obligatorio -> pacientes(id) al borrar cascada
+  medico_id      entero obligatorio -> medicos(id) al borrar impedir
+  empieza        fechahora obligatorio
+  termina        fechahora obligatorio
+  motivo         texto(160)
+  estado         texto = "pendiente" comprobar estado en ["pendiente", "confirmada", "atendida", "no_acudio", "anulada"]
+  nota           texto                           -- lo que apunta el médico al atender
+  origen         texto = "recepcion" comprobar origen en ["recepcion", "telefono", "paciente", "espera"]
+  creada_en      fechahora
+  creada_por     entero
+  confirmada_en  fechahora
+  anulada_en     fechahora
+  anulada_por    texto(20)                       -- «recepcion» o «paciente»
+  llegada        fechahora                       -- entra en la sala de espera
+  entra          fechahora                       -- pasa a la consulta
+  atendida_en    fechahora                       -- sale: lo usa el justificante
+  serie          texto(16)                       -- las citas que se repiten comparten serie
+  comprobar empieza < termina
+}
+indexar citas (empieza)
+indexar citas (medico_id)
+indexar citas (paciente_id)
+indexar citas (serie)
+
+-- ---------- Lista de espera ----------
+--  Quien quiere cita antes de la que hay. Al anularse una cita, el hueco se ofrece al primero que
+--  encaje (mismo médico, o cualquiera de la especialidad), con un enlace que caduca.
+
+crear tabla espera {
+  id            entero clave
+  paciente_id   entero obligatorio -> pacientes(id) al borrar cascada
+  medico_id     entero -> medicos(id) al borrar anular   -- nulo: cualquiera de la especialidad
+  especialidad  texto(60) obligatorio
+  desde         fecha obligatorio                       -- no antes de
+  hasta         fecha                                   -- ni después de (nulo: sin límite)
+  franja        texto = "cualquiera" comprobar franja en ["cualquiera", "manana", "tarde"]
+  minutos       entero = 20 comprobar minutos entre 5 y 240
+  motivo        texto(160)
+  estado        texto = "esperando" comprobar estado en ["esperando", "ofrecida", "citada", "retirada"]
+  cita_id       entero -> citas(id) al borrar anular    -- la cita que consiguió
+  creado_en     fechahora
+}
+indexar espera (estado)
+
+crear tabla ofertas {
+  id            entero clave
+  espera_id     entero obligatorio -> espera(id) al borrar cascada
+  medico_id     entero obligatorio -> medicos(id) al borrar cascada
+  empieza       fechahora obligatorio
+  termina       fechahora obligatorio
+  estado        texto = "abierta" comprobar estado en ["abierta", "aceptada", "rechazada", "caducada", "ocupada"]
+  caduca_en     fechahora obligatorio
+  creada_en     fechahora
+  respondida_en fechahora
+}
+indexar ofertas (estado)
+indexar ofertas (espera_id)
+
+-- ---------- Recordatorios ----------
+--  tipo: «reserva» se manda al dar la cita; «antes_N» N horas antes; «manual» a mano;
+--        «oferta» ofrece un hueco libre a alguien de la lista de espera (va con oferta_id, sin cita).
+--  estado:
+--    pendiente   espera su hora
+--    enviado     salió por correo (SMTP) o se marcó enviado a mano
+--    en_bandeja  le tocaba salir pero no hay por dónde (sin SMTP, o SMS/WhatsApp):
+--                recepción lo ve y lo manda a mano
+--    fallido     el servidor de correo lo rechazó tres veces
+--    anulado     la cita se anuló o se movió antes de su hora
+--    omitido     su hora ya había pasado cuando se dio la cita
+
+crear tabla recordatorios {
+  id           entero clave
+  cita_id      entero -> citas(id) al borrar cascada
+  oferta_id    entero -> ofertas(id) al borrar cascada
+  tipo         texto(12) obligatorio
+  canal        texto obligatorio comprobar canal en ["correo", "sms", "whatsapp"]
+  destino      texto(120)
+  programado   fechahora obligatorio
+  estado       texto = "pendiente" comprobar estado en ["pendiente", "enviado", "en_bandeja", "fallido", "anulado", "omitido"]
+  intentos     entero = 0
+  enviado_en   fechahora
+  error        texto
+  asunto       texto(200)
+  cuerpo       texto
+  creado_en    fechahora
+  comprobar cita_id no es nulo o oferta_id no es nulo
+}
+indexar recordatorios (cita_id)
+indexar recordatorios (oferta_id)
+indexar recordatorios (programado)
+
+insertar en ajustes (clave, valor)
+  ("centro", "Consultorio Volante")
+  ("direccion", "")
+  ("telefono", "")
+  ("avisos_horas", "48,2")
+  ("aviso_reserva", "si")
+  ("zona", "Europe/Madrid")
+  ("oferta_horas", "3")           -- lo que dura una oferta de la lista de espera
+  ("citas_por_enlace", "si")      -- el paciente puede pedir otra cita desde su enlace
